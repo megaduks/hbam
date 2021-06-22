@@ -1,33 +1,62 @@
 import numpy as np
 from typing import Tuple
 
-SIGNATURE_SIZE = 64
+SIGNATURE_SIZE = 16
+EMBEDDING_SIZE = 100
 
 #TODO: add code to compute the algorithmic complexity of a string
 #TODO: add code to shuffle arrays and compare algorithmic complexities
 
 
-def complexity(M: np.array, signature_size: int = SIGNATURE_SIZE) -> Tuple[float, np.array]:
+def cosine(x: np.array, y: np.array, w: np.array) -> float:
+    """
+    Computes the weighted cosine distance between two vectors
+
+    :param x: input array
+    :param y: input array
+    :param w: array of weights
+    :return: weighted cosine distance
+    """
+    #TODO: add assertions about sizes of vectors (must be equal)
+
+    similarity = (x * y * w).sum() / (np.sqrt((w * x**2).sum()) * np.sqrt((w * y**2).sum()))
+
+    return similarity
+
+
+def embed(M: np.array, signature_size: int = SIGNATURE_SIZE) -> np.array:
+    """
+    Embeds an adjacency matrix as a hierarchical bitmap
+    :param M:
+    :param signature_size:
+    :return:
+    """
+    n_rows, n_cols = M.shape
+    M = M.reshape(n_rows*n_cols,)
+    _M = unbinarize(M, signature_size=signature_size)
+
+    embedding = seq2hbseq(_M, signature_size=signature_size)
+
+    return embedding
+
+
+def complexity(M: np.array, signature_size: int = SIGNATURE_SIZE) -> float:
     """
     Encodes an input array M using hierarchical bitmap compression
 
     :param M: input array
     :param signature_size: size of a single signature
-    :return: encoding complexity and hierarchical bitmap encoding of the input array
+    :return: encoding complexity
     """
     #TODO: add code to change adjacency matrix into sequence of integers
     #TODO: add tests for encode() function
 
-    n_rows, n_columns = M.shape
-    M = M.reshape(n_rows*n_columns,)
-    _M = unbinarize(M, signature_size=signature_size)
-
-    hbam_encoding = seq2hbseq(_M, signature_size=signature_size)
+    hbam_encoding = embed(M, signature_size=signature_size)
 
     original_length = len(M)
     hbam_encoding_length = len(hbam_encoding)
 
-    return hbam_encoding_length / original_length, hbam_encoding
+    return hbam_encoding_length / original_length
 
 
 def unbinarize(a: np.array, signature_size: int = SIGNATURE_SIZE) -> np.array:
@@ -70,7 +99,7 @@ def arr2int(a: np.array, signature_size: int = SIGNATURE_SIZE) -> int:
 
     assert signature_size <= SIGNATURE_SIZE, f"Size of binary signature cannot be larger than {SIGNATURE_SIZE}"
     assert len(a) <= signature_size, f"Input array size cannot be larger than {SIGNATURE_SIZE}"
-    assert np.unique(a).tolist() in [[0], [1], [0,1]], f"Input array must be binary"
+    assert np.unique(a).tolist() in [[0], [1], [0, 1]], f"Input array must be binary"
 
     str_array = ''.join(map(str, a))
     int_value_of_array = int(str_array, base=2)
@@ -78,12 +107,13 @@ def arr2int(a: np.array, signature_size: int = SIGNATURE_SIZE) -> int:
     return int_value_of_array
 
 
-def seq2hbseq(a: np.array, signature_size: int = SIGNATURE_SIZE) -> np.array:
+def seq2hbseq(a: np.array, signature_size: int = SIGNATURE_SIZE, embedding_size: int = EMBEDDING_SIZE) -> np.array:
     """
     Converts a sequence of integers into a hierarchical bitmap sequence
 
     :param a: input array
     :param signature_size: size of a single signature
+    :param embedding_size: size of the resulting embedding
     :return:  array of ints forming the condensed hierarchical bitmap sequence
     """
 
@@ -118,5 +148,11 @@ def seq2hbseq(a: np.array, signature_size: int = SIGNATURE_SIZE) -> np.array:
         current_level = next_level
 
     result = np.insert(result, 0, current_level)
+    result = result[result > 0].astype(int)
 
-    return result[result > 0].astype(int)
+    result_length = len(result)
+
+    if result_length < EMBEDDING_SIZE:
+        return np.pad(result, pad_width=(0, EMBEDDING_SIZE-result_length), mode='constant', constant_values=0)
+    else:
+        return result[:EMBEDDING_SIZE]

@@ -22,14 +22,29 @@ class TestHBAMMethods(unittest.TestCase):
             hbam.arr2int(input)
 
     def test_binarize(self):
-        input = np.array([3,2,1,0,3,0,1,0])
+        input = np.array([3, 2, 1, 0, 3, 0, 1, 0])
         output = hbam.binarize((input)).tolist()
-        self.assertListEqual(output, [1,1,1,0,1,0,1,0])
+        self.assertListEqual(output, [1, 1, 1, 0, 1, 0, 1, 0])
 
     def test_unbinarize(self):
-        input = np.array([0,0,0,1,1,0,1,1])
+        input = np.array([0, 0, 0, 1, 1, 0, 1, 1])
         output = hbam.unbinarize(input, signature_size=2).tolist()
-        self.assertListEqual(output, [0,1,2,3])
+        self.assertListEqual(output, [0, 1, 2, 3])
+
+    def test_length_of_embedding(self):
+        input = np.array([0, 0, 0, 1, 1, 0, 1, 1])
+        output = hbam.seq2hbseq(input)
+
+        self.assertEqual(len(output), hbam.EMBEDDING_SIZE)
+
+    def test_weighted_cosine(self):
+        x = np.array([1, 1, 1])
+        y = np.array([1, 2, 0])
+        w = np.array([1, 0.5, 0.1])
+
+        output = hbam.cosine(x, y, w)
+
+        self.assertAlmostEqual(output, 0.9128709291752769)
 
 
 if __name__ == '__main__':
