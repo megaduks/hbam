@@ -46,6 +46,21 @@ class TestHBAMMethods(unittest.TestCase):
 
         self.assertAlmostEqual(output, 0.9128709291752769)
 
+    def test_input_arrays_different_shape(self):
+        x = np.ones(10)
+        y = np.ones(11)
+
+        with self.assertRaises(AssertionError):
+            output = hbam.cosine(x, y)
+
+    def test_cosine_no_weight_array(self):
+        x = np.ones(10)
+        y = np.ones(10)
+
+        output = hbam.cosine(x, y)
+
+        self.assertAlmostEqual(output, 1.0)
+
 
 if __name__ == '__main__':
     unittest.main()

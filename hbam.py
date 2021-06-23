@@ -1,5 +1,4 @@
 import numpy as np
-from typing import Tuple
 
 SIGNATURE_SIZE = 16
 EMBEDDING_SIZE = 100
@@ -8,7 +7,7 @@ EMBEDDING_SIZE = 100
 #TODO: add code to shuffle arrays and compare algorithmic complexities
 
 
-def cosine(x: np.array, y: np.array, w: np.array) -> float:
+def cosine(x: np.array, y: np.array, w: np.array = None) -> float:
     """
     Computes the weighted cosine distance between two vectors
 
@@ -17,7 +16,10 @@ def cosine(x: np.array, y: np.array, w: np.array) -> float:
     :param w: array of weights
     :return: weighted cosine distance
     """
-    #TODO: add assertions about sizes of vectors (must be equal)
+    assert x.shape == y.shape, "Input arrays must have identical shapes"
+    assert w is None or w.shape == x.shape, "Weight array must have the same shape as the input array"
+
+    w = np.ones(x.shape) if w is None else w
 
     similarity = (x * y * w).sum() / (np.sqrt((w * x**2).sum()) * np.sqrt((w * y**2).sum()))
 
