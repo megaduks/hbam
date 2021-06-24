@@ -1,4 +1,6 @@
 import unittest
+
+import networkx as nx
 import numpy as np
 
 from .. import hbam
@@ -60,6 +62,12 @@ class TestHBAMMethods(unittest.TestCase):
         output = hbam.cosine(x, y)
 
         self.assertAlmostEqual(output, 1.0)
+
+    def test_permute(self):
+        g = nx.barabasi_albert_graph(n=10, m=3)
+        h = hbam.permute(g)
+
+        self.assertTrue(nx.is_isomorphic(g, h))
 
 
 if __name__ == '__main__':

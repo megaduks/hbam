@@ -1,7 +1,8 @@
+import networkx as nx
 import numpy as np
 
-SIGNATURE_SIZE = 16
-EMBEDDING_SIZE = 100
+SIGNATURE_SIZE = 8
+EMBEDDING_SIZE = 300
 
 #TODO: add code to compute the algorithmic complexity of a string
 #TODO: add code to shuffle arrays and compare algorithmic complexities
@@ -40,6 +41,21 @@ def embed(M: np.array, signature_size: int = SIGNATURE_SIZE) -> np.array:
     embedding = seq2hbseq(_M, signature_size=signature_size)
 
     return embedding
+
+
+def permute(g: nx.Graph) -> nx.Graph:
+    """
+    Creates a random permutation of the graph
+
+    :param g: input graph
+    :return: isomorphic graph with relabeled vertices
+    """
+    permutation = np.random.permutation(g.nodes)
+    mapping = {k:v for (k,v) in zip(g.nodes, permutation)}
+
+    h = nx.relabel_nodes(g, mapping=mapping)
+
+    return h
 
 
 def compression(M: np.array, signature_size: int = SIGNATURE_SIZE) -> float:
