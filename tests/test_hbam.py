@@ -68,6 +68,43 @@ class TestHBAMMethods(unittest.TestCase):
         h = hbam.permute(g)
 
         self.assertTrue(nx.is_isomorphic(g, h))
+        self.assertNotEqual(g.edges, h.edges)
+
+    def test_modify_wrong_action(self):
+        g = nx.barabasi_albert_graph(n=10, m=3)
+
+        with self.assertRaises(AssertionError):
+            h = hbam.modify(g, 'wrong_name_of_action')
+
+    def test_modify_add_node(self):
+        g = nx.barabasi_albert_graph(n=10, m=3)
+        h = hbam.modify(g, 'add_node')
+
+        self.assertEqual(g.number_of_nodes()+1, h.number_of_nodes())
+
+    def test_modify_del_node(self):
+        g = nx.barabasi_albert_graph(n=10, m=3)
+        h = hbam.modify(g, 'del_node')
+
+        self.assertEqual(g.number_of_nodes()-1, h.number_of_nodes())
+
+    def test_modify_add_edge(self):
+        g = nx.barabasi_albert_graph(n=10, m=3)
+        h = hbam.modify(g, 'add_edge')
+
+        self.assertEqual(g.number_of_edges()+1, h.number_of_edges())
+
+    def test_modify_del_edge(self):
+        g = nx.barabasi_albert_graph(n=10, m=3)
+        h = hbam.modify(g, 'del_edge')
+
+        self.assertEqual(g.number_of_edges()-1, h.number_of_edges())
+
+    def test_modify_change_edge(self):
+        g = nx.barabasi_albert_graph(n=10, m=3)
+        h = hbam.modify(g, 'change_edge')
+
+        self.assertEqual(g.number_of_edges(), h.number_of_edges())
 
 
 if __name__ == '__main__':

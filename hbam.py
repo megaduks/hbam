@@ -27,6 +27,71 @@ def cosine(x: np.array, y: np.array, w: np.array = None) -> float:
     return similarity
 
 
+def modify(g: nx.Graph, action: str = None) -> nx.Graph:
+    """
+    Performs a random modification of the input graph
+
+    :param g: input graph to which modification is applied
+    :param action: the name of the modification to be performed, if None, then a random modification is performed
+    :return: modified graph
+    """
+    def add_node(g: nx.Graph) -> nx.Graph:
+        g = g.copy()
+        target = np.random.choice(g.nodes)
+        g.add_edge(max(g.nodes)+1, target)
+
+        return g
+
+    def del_node(g: nx.Graph) -> nx.Graph:
+        g = g.copy()
+        target = np.random.choice(g.nodes)
+        g.remove_node(target)
+
+        return g
+
+    def add_edge(g: nx.Graph) -> nx.Graph:
+        g = g.copy()
+        source = np.random.choice(g.nodes)
+        target = np.random.choice([n for n in g.nodes if (source,n) not in g.edges])
+        g.add_edge(source, target)
+
+        return g
+
+    def del_edge(g: nx.Graph) -> nx.Graph:
+        g = g.copy()
+        edges = list(g.edges)
+        edge = edges[np.random.choice(len(edges))]
+        g.remove_edge(*edge)
+
+        return g
+
+    def change_edge(g: nx.Graph) -> nx.Graph:
+        g = g.copy()
+        edges = list(g.edges)
+        source, target = edges[np.random.choice(len(edges))]
+        new_target = np.random.choice(list(g.nodes - [target]))
+        g.add_edge(source, new_target)
+
+        return g
+
+    ACTIONS = {
+        'add_node': add_node,
+        'del_node': del_node,
+        'add_edge': add_edge,
+        'del_edge': del_edge,
+        'change_edge': change_edge
+    }
+
+    assert action in ACTIONS or action is None, "Wrong value of the action parameter"
+
+    if not action:
+        result = np.random.choice(list(ACTIONS.values()))(g)
+    else:
+        result = ACTIONS[action](g)
+
+    return result
+
+
 def embed(M: np.array, signature_size: int = SIGNATURE_SIZE) -> np.array:
     """
     Embeds an adjacency matrix as a hierarchical bitmap
