@@ -4,8 +4,62 @@ import numpy as np
 SIGNATURE_SIZE = 8
 EMBEDDING_SIZE = 300
 
-#TODO: add code to compute the algorithmic complexity of a string
-#TODO: add code to shuffle arrays and compare algorithmic complexities
+
+# TODO: add code to compute the algorithmic complexity of a string
+# TODO: add code to shuffle arrays and compare algorithmic complexities
+
+
+def add_node(g: nx.Graph) -> nx.Graph:
+    g = g.copy()
+    target = np.random.choice(g.nodes)
+    g.add_edge(max(g.nodes) + 1, target)
+
+    return g
+
+
+def del_node(g: nx.Graph) -> nx.Graph:
+    g = g.copy()
+    target = np.random.choice(g.nodes)
+    g.remove_node(target)
+
+    return g
+
+
+def add_edge(g: nx.Graph) -> nx.Graph:
+    g = g.copy()
+    source = np.random.choice(g.nodes)
+    target = np.random.choice([n for n in g.nodes if (source, n) not in g.edges])
+    g.add_edge(source, target)
+
+    return g
+
+
+def del_edge(g: nx.Graph) -> nx.Graph:
+    g = g.copy()
+    edges = list(g.edges)
+    edge = edges[np.random.choice(len(edges))]
+    g.remove_edge(*edge)
+
+    return g
+
+
+def change_edge(g: nx.Graph) -> nx.Graph:
+    g = g.copy()
+    edges = list(g.edges)
+    source, target = edges[np.random.choice(len(edges))]
+    new_target = np.random.choice(list(g.nodes - [target]))
+    g.add_edge(source, new_target)
+
+    return g
+
+
+ACTIONS = {
+    'add_node': add_node,
+    'del_node': del_node,
+    'add_edge': add_edge,
+    'del_edge': del_edge,
+    'change_edge': change_edge
+}
 
 
 def cosine(x: np.array, y: np.array, w: np.array = None) -> float:
@@ -22,7 +76,7 @@ def cosine(x: np.array, y: np.array, w: np.array = None) -> float:
 
     w = np.ones(x.shape) if w is None else w
 
-    similarity = (x * y * w).sum() / (np.sqrt((w * x**2).sum()) * np.sqrt((w * y**2).sum()))
+    similarity = (x * y * w).sum() / (np.sqrt((w * x ** 2).sum()) * np.sqrt((w * y ** 2).sum()))
 
     return similarity
 
@@ -35,53 +89,6 @@ def modify(g: nx.Graph, action: str = None) -> nx.Graph:
     :param action: the name of the modification to be performed, if None, then a random modification is performed
     :return: modified graph
     """
-    def add_node(g: nx.Graph) -> nx.Graph:
-        g = g.copy()
-        target = np.random.choice(g.nodes)
-        g.add_edge(max(g.nodes)+1, target)
-
-        return g
-
-    def del_node(g: nx.Graph) -> nx.Graph:
-        g = g.copy()
-        target = np.random.choice(g.nodes)
-        g.remove_node(target)
-
-        return g
-
-    def add_edge(g: nx.Graph) -> nx.Graph:
-        g = g.copy()
-        source = np.random.choice(g.nodes)
-        target = np.random.choice([n for n in g.nodes if (source,n) not in g.edges])
-        g.add_edge(source, target)
-
-        return g
-
-    def del_edge(g: nx.Graph) -> nx.Graph:
-        g = g.copy()
-        edges = list(g.edges)
-        edge = edges[np.random.choice(len(edges))]
-        g.remove_edge(*edge)
-
-        return g
-
-    def change_edge(g: nx.Graph) -> nx.Graph:
-        g = g.copy()
-        edges = list(g.edges)
-        source, target = edges[np.random.choice(len(edges))]
-        new_target = np.random.choice(list(g.nodes - [target]))
-        g.add_edge(source, new_target)
-
-        return g
-
-    ACTIONS = {
-        'add_node': add_node,
-        'del_node': del_node,
-        'add_edge': add_edge,
-        'del_edge': del_edge,
-        'change_edge': change_edge
-    }
-
     assert action in ACTIONS or action is None, "Wrong value of the action parameter"
 
     if not action:
@@ -92,6 +99,27 @@ def modify(g: nx.Graph, action: str = None) -> nx.Graph:
     return result
 
 
+def get_weights(n: int, type: str = 'linear') -> np.array:
+    """
+    Returns the weight vector computed by one of three possible weighting functions: linear, exponential, or adaptive
+
+    :param n: length of the weight vector
+    :param type: weighting function
+    :return: array with weights
+    """
+    assert type in ['linear', 'exponential', 'adaptive'] or type is None, "Wrong type of weighting function"
+
+    if type == 'linear' or type is None:
+        w = np.array([(n - i) / n for i in range(n)])
+    elif type == 'exponential':
+        w = np.array([1 / (1 + i) for i in range(n)])
+    elif type == 'adaptive':
+        # TODO: implement the adaptive weight
+        w = np.array([(n - i) / n for i in range(n)])
+
+    return w
+
+
 def embed(M: np.array, signature_size: int = SIGNATURE_SIZE) -> np.array:
     """
     Embeds an adjacency matrix as a hierarchical bitmap
@@ -100,7 +128,7 @@ def embed(M: np.array, signature_size: int = SIGNATURE_SIZE) -> np.array:
     :return:
     """
     n_rows, n_cols = M.shape
-    M = M.reshape(n_rows*n_cols,)
+    M = M.reshape(n_rows * n_cols, )
     _M = unbinarize(M, signature_size=signature_size)
 
     embedding = seq2hbseq(_M, signature_size=signature_size)
@@ -116,7 +144,7 @@ def permute(g: nx.Graph) -> nx.Graph:
     :return: isomorphic graph with relabeled vertices
     """
     permutation = np.random.permutation(g.nodes)
-    mapping = {k:v for (k,v) in zip(g.nodes, permutation)}
+    mapping = {k: v for (k, v) in zip(g.nodes, permutation)}
 
     h = nx.relabel_nodes(g, mapping=mapping)
 
@@ -196,7 +224,7 @@ def seq2hbseq(a: np.array, signature_size: int = SIGNATURE_SIZE) -> np.array:
     :return:  array of ints forming the condensed hierarchical bitmap sequence
     """
 
-    #TODO: add tests for this method
+    # TODO: add tests for this method
 
     # length of the input array must be the multiple of the signature size
     a = np.append(a, np.zeros(signature_size - len(a) % signature_size))
@@ -232,6 +260,6 @@ def seq2hbseq(a: np.array, signature_size: int = SIGNATURE_SIZE) -> np.array:
     result_length = len(result)
 
     if result_length < EMBEDDING_SIZE:
-        return np.pad(result, pad_width=(0, EMBEDDING_SIZE-result_length), mode='constant', constant_values=0)
+        return np.pad(result, pad_width=(0, EMBEDDING_SIZE - result_length), mode='constant', constant_values=0)
     else:
         return result[:EMBEDDING_SIZE]
