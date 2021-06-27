@@ -101,21 +101,26 @@ def modify(g: nx.Graph, action: str = None) -> nx.Graph:
 
 def get_weights(n: int, type: str = 'linear') -> np.array:
     """
-    Returns the weight vector computed by one of three possible weighting functions: linear, exponential, or adaptive
+    Returns the weight vector computed by one of three possible weighting functions: linear, exponential, or stepwise
 
     :param n: length of the weight vector
     :param type: weighting function
     :return: array with weights
     """
-    assert type in ['linear', 'exponential', 'adaptive'] or type is None, "Wrong type of weighting function"
+    assert type in ['linear', 'exponential', 'stepwise'] or type is None, "Wrong type of weighting function"
 
     if type == 'linear' or type is None:
         w = np.array([(n - i) / n for i in range(n)])
     elif type == 'exponential':
         w = np.array([1 / (1 + i) for i in range(n)])
-    elif type == 'adaptive':
-        # TODO: implement the adaptive weight
-        w = np.array([(n - i) / n for i in range(n)])
+    elif type == 'stepwise':
+        i = 0
+        while (SIGNATURE_SIZE**(i+1)-1)/(SIGNATURE_SIZE-1) < EMBEDDING_SIZE:
+            i += 1
+        w = []
+        for k in range(i+1):
+            w += [1/(1+k)] * SIGNATURE_SIZE**k
+        w = np.array(w[:EMBEDDING_SIZE])
 
     return w
 

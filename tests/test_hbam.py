@@ -106,6 +106,11 @@ class TestHBAMMethods(unittest.TestCase):
 
         self.assertEqual(g.number_of_edges(), h.number_of_edges())
 
+    def test_weight_stepwise(self):
+        w = hbam.get_weights(hbam.EMBEDDING_SIZE, 'stepwise')
+
+        self.assertEqual(len(w), hbam.EMBEDDING_SIZE)
+
 
 if __name__ == '__main__':
     unittest.main()
