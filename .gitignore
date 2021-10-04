@@ -15,4 +15,4 @@ src
 *.map
 
 # for Jupytext ignoring ipynb files
-*.ipynb
+**/*.ipynb
